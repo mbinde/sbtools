@@ -1,0 +1,42 @@
+#!/usr/bin/php
+<?php
+
+$root = '/var/www';
+
+$mysql = "/usr/bin/mysql";
+
+if (! file_exists($mysql)) {
+  print "You need mysql installed.\n";
+  exit (1);
+}
+
+if (! isset($argv[1])) {
+  print "You must specify a drupal site.\n";
+  exit(1);
+}
+
+$target = $argv[1];
+$settings = "$root/$target/sites/default/settings.php";
+
+if (! file_exists($settings)) {
+  print "You must specify a valid drupal site.\n$settings does not exists.\n";
+  exit(1);
+}
+
+require $settings;
+
+preg_match('!mysqli://(.+?):(.+?)@(.+?)/(.+)!', $db_url, $matches);
+
+$user = $matches[1];
+$pass = $matches[2];
+$host = $matches[3];
+$db = $matches[4];
+
+print "Uploading data...\n";
+
+$command = "$mysql -u $user -p$pass -h $host $db < $target.sql";
+shell_exec($command);
+
+print "Done.\n";
+
+?>
